@@ -21,7 +21,7 @@ const sendPushNotification = (url, branches) => {
 }
 
 exports.handler = event => {
-	const data = JSON.parse(event.Records[0].Sns.Message).Records[0];
+	const data = event.Records[0];
 	const repositoryName = data.eventSourceARN.split(':').pop();
 	const branches = data.codecommit.references.map(r => r.ref);
 

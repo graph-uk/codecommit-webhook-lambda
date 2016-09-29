@@ -15,10 +15,6 @@ resource "aws_iam_role_policy" "iam_policy_for_webhook_lambda" {
     policy = "${file("${path.module}/policies/assumePolicy.json")}"
 }
 
-resource "aws_sns_topic" "webhook_sns" {
-	name = "webhook_sns_topic"
-}
-
 resource "aws_lambda_function" "webhook_lambda" {
 	filename = "codecommit-webhook.zip"
 	function_name = "codecommit-webhook"
@@ -28,17 +24,9 @@ resource "aws_lambda_function" "webhook_lambda" {
 	source_code_hash = "${base64sha256(file("codecommit-webhook.zip"))}"
 }
 
-resource "aws_sns_topic_subscription" "webhook_sns_subscription" {
-	depends_on = ["aws_lambda_function.webhook_lambda"]
-	topic_arn = "${aws_sns_topic.webhook_sns.arn}"
-	protocol = "lambda"
-	endpoint = "${aws_lambda_function.webhook_lambda.arn}"
-}
-
-resource "aws_lambda_permission" "allow_from_sns" {
-	statement_id = "AllowExecutionFromSNS"
+resource "aws_lambda_permission" "allow_from_lambda" {
+	statement_id = "AllowExecutionFromLambda"
 	action = "lambda:InvokeFunction"
 	function_name = "${aws_lambda_function.webhook_lambda.arn}"
-	principal = "sns.amazonaws.com"
-	source_arn = "${aws_sns_topic.webhook_sns.arn}"
+	principal = "codecommit.amazonaws.com"
 }
