@@ -4,11 +4,15 @@ const https = require('https');
 const config = require('./config.json');
 const codecommit = new aws.CodeCommit();
 
-const sendPushNotification = (url, branches) => {
+const sendPushNotification = (repositoryName, url, branches) => {
 	const path = `/git/notifyCommit?url=${url}&branches=${branches.join(',')}`;
+
+	console.log(repositoryName, url, branches);
 
 	return new Promise((resolve, reject) => {
 		https.get(`${config.jenkinsUrl}${path}`, res => {
+			res.on("data", data => console.log(`res: ${data}`));
+
 			if (res.statusCode === 200) {
 				resolve();
 			} else {
@@ -28,6 +32,6 @@ exports.handler = event => {
 	return codecommit.getRepository({repositoryName})
 		.promise()
 		.then(data => data.repositoryMetadata.cloneUrlSsh)
-		.then(url => sendPushNotification(url, branches))
+		.then(url => sendPushNotification(repositoryName, url, branches))
 		.catch(console.error);
 };
